@@ -3,148 +3,350 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fila Futvôlei</title>
+
+<title>Cerrado FTV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
 body{
-    font-family: Arial, sans-serif;
-    max-width:800px;
-    margin:auto;
-    padding:20px;
-    background:#f5f5f5;
+background:#0f172a;
+color:white;
+padding:20px;
 }
-h1{
-    text-align:center;
+
+.container{
+max-width:700px;
+margin:auto;
 }
-input{
-    padding:10px;
-    width:70%;
+
+.logo{
+text-align:center;
+font-size:2rem;
+font-weight:700;
+margin-bottom:20px;
 }
-button{
-    padding:10px;
-    cursor:pointer;
-}
-ul{
-    list-style:none;
-    padding:0;
-}
-li{
-    background:white;
-    margin:6px 0;
-    padding:12px;
-    border-radius:8px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    cursor:move;
-}
-.remove{
-    background:#ff4d4d;
-    color:white;
-    border:none;
-    border-radius:4px;
-}
+
 .card{
-    background:white;
-    padding:15px;
-    border-radius:8px;
-    margin-top:20px;
+background:#1e293b;
+border-radius:20px;
+padding:20px;
+margin-bottom:20px;
+box-shadow:0 10px 20px rgba(0,0,0,.3);
 }
+
+input{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+margin-bottom:10px;
+font-size:16px;
+}
+
+button{
+border:none;
+border-radius:12px;
+padding:14px;
+font-weight:600;
+cursor:pointer;
+width:100%;
+margin-top:8px;
+}
+
+.add{
+background:#22c55e;
+color:white;
+}
+
+.win{
+background:#f59e0b;
+color:white;
+}
+
+.remove{
+background:#ef4444;
+color:white;
+width:auto;
+padding:6px 10px;
+}
+
+.player{
+background:#334155;
+padding:12px;
+margin:6px 0;
+border-radius:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.arena{
+text-align:center;
+font-size:1.2rem;
+line-height:2;
+}
+
+.ranking-item{
+display:flex;
+justify-content:space-between;
+padding:10px;
+background:#334155;
+border-radius:10px;
+margin-top:6px;
+}
+
+.subtitle{
+margin-bottom:10px;
+font-weight:600;
+}
+
+.counter{
+text-align:center;
+font-size:18px;
+margin-bottom:20px;
+color:#94a3b8;
+}
+
 </style>
+
 </head>
+
 <body>
 
-<h1>🏐 Fila Futvôlei</h1>
+<div class="container">
 
-<input id="nome" placeholder="Nome do jogador">
-<button onclick="adicionar()">Adicionar</button>
+<div class="logo">
+🏐 Cerrado FTV
+</div>
+
+<div class="counter" id="contador"></div>
 
 <div class="card">
-    <h2>Fila</h2>
-    <ul id="fila"></ul>
+
+<input
+id="novoJogador"
+placeholder="Adicionar jogador">
+
+<button class="add" onclick="adicionarJogador()">
+Adicionar Jogador
+</button>
+
 </div>
 
 <div class="card">
-    <h2>Próximo Jogo</h2>
-    <div id="jogo">Aguardando jogadores...</div>
+<div class="subtitle">🔥 Em Quadra</div>
+<div id="quadra" class="arena"></div>
+</div>
+
+<div class="card">
+<div class="subtitle">📋 Fila de Espera</div>
+<div id="fila"></div>
+</div>
+
+<div class="card">
+<div class="subtitle">🏆 Resultado da Partida</div>
+
+<button
+class="win"
+onclick="registrarVitoria(1)">
+Dupla 1 Venceu
+</button>
+
+<button
+class="win"
+onclick="registrarVitoria(2)">
+Dupla 2 Venceu
+</button>
+
+</div>
+
+<div class="card">
+<div class="subtitle">🥇 Ranking</div>
+<div id="ranking"></div>
+</div>
+
 </div>
 
 <script>
 
-const fila = [];
+let jogadores=
+JSON.parse(localStorage.getItem('jogadores')) || [];
+
+let vitorias=
+JSON.parse(localStorage.getItem('vitorias')) || {};
+
+function salvar(){
+
+localStorage.setItem(
+'jogadores',
+JSON.stringify(jogadores)
+);
+
+localStorage.setItem(
+'vitorias',
+JSON.stringify(vitorias)
+);
+
+}
+
+function adicionarJogador(){
+
+const nome=
+document.getElementById('novoJogador').value.trim();
+
+if(!nome) return;
+
+jogadores.push(nome);
+
+if(!vitorias[nome])
+vitorias[nome]=0;
+
+document.getElementById('novoJogador').value='';
+
+salvar();
+
+renderizar();
+
+}
+
+function removerJogador(nome){
+
+jogadores=
+jogadores.filter(p=>p!==nome);
+
+salvar();
+
+renderizar();
+
+}
+
+function registrarVitoria(time){
+
+if(jogadores.length<4)
+return;
+
+let dupla1=[jogadores[0],jogadores[1]];
+let dupla2=[jogadores[2],jogadores[3]];
+
+let vencedores=
+time===1 ? dupla1 : dupla2;
+
+let perdedores=
+time===1 ? dupla2 : dupla1;
+
+vencedores.forEach(j=>vitorias[j]++);
+
+let filaNova=
+[
+...vencedores,
+...jogadores.slice(4),
+...perdedores
+];
+
+jogadores=filaNova;
+
+salvar();
+
+renderizar();
+
+}
 
 function renderizar(){
 
-    const ul = document.getElementById("fila");
-    ul.innerHTML = "";
+document.getElementById('contador')
+.innerHTML=
+`${jogadores.length} jogadores presentes`;
 
-    fila.forEach((nome,index)=>{
-        const li = document.createElement("li");
+let quadra=document.getElementById('quadra');
 
-        li.innerHTML = `
-            <span>${index+1}. ${nome}</span>
-            <button class="remove" onclick="remover(${index})">
-                Sair
-            </button>
-        `;
+if(jogadores.length>=4){
 
-        ul.appendChild(li);
-    });
+quadra.innerHTML=
 
-    atualizarJogo();
+`
+🟢 ${jogadores[0]} + ${jogadores[1]}
+<br><br>
+⚔️
+<br><br>
+🔵 ${jogadores[2]} + ${jogadores[3]}
+`;
+
+}else{
+
+quadra.innerHTML=
+'Adicione pelo menos 4 jogadores';
+
 }
 
-function adicionar(){
+let fila=document.getElementById('fila');
 
-    const input = document.getElementById("nome");
+fila.innerHTML='';
 
-    if(!input.value.trim()) return;
+jogadores.slice(4).forEach(nome=>{
 
-    fila.push(input.value.trim());
+let div=document.createElement('div');
 
-    input.value = "";
-    renderizar();
-}
+div.className='player';
 
-function remover(index){
-    fila.splice(index,1);
-    renderizar();
-}
+div.innerHTML=
+`
+<span>${nome}</span>
+<button
+class="remove"
+onclick="removerJogador('${nome}')">
+Sair
+</button>
+`;
 
-function atualizarJogo(){
+fila.appendChild(div);
 
-    const div = document.getElementById("jogo");
-
-    if(fila.length < 4){
-        div.innerHTML = "É necessário pelo menos 4 jogadores.";
-        return;
-    }
-
-    div.innerHTML = `
-        <strong>Dupla 1</strong><br>
-        ${fila[0]} + ${fila[1]}
-        <br><br>
-        <strong>VS</strong>
-        <br><br>
-        <strong>Dupla 2</strong><br>
-        ${fila[2]} + ${fila[3]}
-    `;
-}
-
-const sortable = new Sortable(document.getElementById("fila"),{
-    animation:150,
-    onEnd:function(evt){
-
-        const item = fila.splice(evt.oldIndex,1)[0];
-        fila.splice(evt.newIndex,0,item);
-
-        renderizar();
-    }
 });
 
+let ranking=document.getElementById('ranking');
+
+ranking.innerHTML='';
+
+Object.entries(vitorias)
+
+.sort((a,b)=>b[1]-a[1])
+
+.forEach(item=>{
+
+let div=document.createElement('div');
+
+div.className='ranking-item';
+
+div.innerHTML=
+`
+<span>${item[0]}</span>
+<span>${item[1]} vitórias</span>
+`;
+
+ranking.appendChild(div);
+
+});
+
+}
+
 renderizar();
+
+new Sortable(
+document.getElementById('fila'),
+{
+animation:150
+}
+);
 
 </script>
 
