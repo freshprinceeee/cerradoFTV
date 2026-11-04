@@ -6,11 +6,24 @@
 
 <title>Cerrado FTV</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <style>
+
+:root{
+--bg:#071018;
+--card:#12202d;
+--card2:#182b3a;
+--green:#00d26a;
+--orange:#ffb11b;
+--red:#ff5c5c;
+--text:#ffffff;
+--muted:#9fb2c3;
+}
 
 *{
 margin:0;
@@ -20,13 +33,14 @@ font-family:'Poppins',sans-serif;
 }
 
 body{
-background:#0f172a;
-color:white;
-padding:20px;
+background:var(--bg);
+color:var(--text);
+padding:15px;
+padding-bottom:50px;
 }
 
 .container{
-max-width:700px;
+max-width:800px;
 margin:auto;
 }
 
@@ -34,92 +48,138 @@ margin:auto;
 text-align:center;
 font-size:2rem;
 font-weight:700;
+margin-bottom:10px;
+}
+
+.subtitleTop{
+text-align:center;
+color:var(--muted);
 margin-bottom:20px;
 }
 
 .card{
-background:#1e293b;
-border-radius:20px;
-padding:20px;
+background:var(--card);
+border-radius:18px;
+padding:16px;
+margin-bottom:15px;
+box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+
+.section-title{
+font-size:18px;
+font-weight:600;
+margin-bottom:12px;
+}
+
+.counter{
+text-align:center;
+font-size:14px;
+color:var(--muted);
 margin-bottom:20px;
-box-shadow:0 10px 20px rgba(0,0,0,.3);
 }
 
 input{
 width:100%;
-padding:15px;
+padding:14px;
 border:none;
 border-radius:12px;
-margin-bottom:10px;
 font-size:16px;
+margin-bottom:10px;
+outline:none;
 }
 
 button{
 border:none;
-border-radius:12px;
-padding:14px;
-font-weight:600;
 cursor:pointer;
+border-radius:12px;
+font-weight:600;
+}
+
+.btn{
 width:100%;
-margin-top:8px;
+padding:14px;
 }
 
-.add{
-background:#22c55e;
+.btn-green{
+background:var(--green);
 color:white;
 }
 
-.win{
-background:#f59e0b;
-color:white;
+.btn-orange{
+background:var(--orange);
+color:black;
+margin-top:10px;
 }
 
-.remove{
-background:#ef4444;
+.btn-red{
+background:var(--red);
 color:white;
 width:auto;
-padding:6px 10px;
+padding:6px 12px;
+}
+
+.arena{
+text-align:center;
+line-height:2;
+font-size:18px;
+}
+
+.team{
+background:var(--card2);
+padding:12px;
+border-radius:12px;
+margin:8px 0;
 }
 
 .player{
-background:#334155;
+background:var(--card2);
 padding:12px;
-margin:6px 0;
 border-radius:12px;
+margin-bottom:8px;
 display:flex;
 justify-content:space-between;
 align-items:center;
 }
 
-.arena{
-text-align:center;
-font-size:1.2rem;
-line-height:2;
-}
-
-.ranking-item{
+.rank{
+background:var(--card2);
+padding:12px;
+border-radius:12px;
+margin-bottom:8px;
 display:flex;
 justify-content:space-between;
-padding:10px;
-background:#334155;
-border-radius:10px;
-margin-top:6px;
 }
 
-.subtitle{
-margin-bottom:10px;
+.badge{
+background:var(--green);
+display:inline-block;
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+margin-bottom:8px;
+}
+
+.reset{
+background:#2b3741;
+color:white;
+padding:14px;
+width:100%;
+margin-top:15px;
+}
+
+.next{
+color:var(--green);
 font-weight:600;
 }
 
-.counter{
+.empty{
 text-align:center;
-font-size:18px;
-margin-bottom:20px;
-color:#94a3b8;
+color:var(--muted);
+padding:10px;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -130,41 +190,74 @@ color:#94a3b8;
 🏐 Cerrado FTV
 </div>
 
+<div class="subtitleTop">
+Sistema de Rodízio de Futvôlei
+</div>
+
 <div class="counter" id="contador"></div>
 
 <div class="card">
 
+<div class="section-title">
+Adicionar Jogador
+</div>
+
 <input
 id="novoJogador"
-placeholder="Adicionar jogador">
+placeholder="Digite o nome">
 
-<button class="add" onclick="adicionarJogador()">
-Adicionar Jogador
+<button
+class="btn btn-green"
+onclick="adicionarJogador()">
+Adicionar
 </button>
 
 </div>
 
 <div class="card">
-<div class="subtitle">🔥 Em Quadra</div>
-<div id="quadra" class="arena"></div>
+
+<div class="section-title">
+🔥 Em Quadra
+</div>
+
+<div id="quadra"></div>
+
 </div>
 
 <div class="card">
-<div class="subtitle">📋 Fila de Espera</div>
+
+<div class="section-title">
+➡️ Próximos a Entrar
+</div>
+
+<div id="proximos"></div>
+
+</div>
+
+<div class="card">
+
+<div class="section-title">
+📋 Fila de Espera
+</div>
+
 <div id="fila"></div>
+
 </div>
 
 <div class="card">
-<div class="subtitle">🏆 Resultado da Partida</div>
+
+<div class="section-title">
+🏆 Resultado da Partida
+</div>
 
 <button
-class="win"
+class="btn btn-orange"
 onclick="registrarVitoria(1)">
 Dupla 1 Venceu
 </button>
 
 <button
-class="win"
+class="btn btn-orange"
 onclick="registrarVitoria(2)">
 Dupla 2 Venceu
 </button>
@@ -172,183 +265,131 @@ Dupla 2 Venceu
 </div>
 
 <div class="card">
-<div class="subtitle">🥇 Ranking</div>
+
+<div class="section-title">
+🥇 Ranking
+</div>
+
 <div id="ranking"></div>
+
+<button
+class="reset"
+onclick="zerarNoite()">
+🔄 Reiniciar Noite
+</button>
+
 </div>
 
 </div>
 
 <script>
 
-let jogadores=
-JSON.parse(localStorage.getItem('jogadores')) || [];
+let jogadores =
+JSON.parse(localStorage.getItem("ftv_jogadores")) || [];
 
-let vitorias=
-JSON.parse(localStorage.getItem('vitorias')) || {};
+let vitorias =
+JSON.parse(localStorage.getItem("ftv_vitorias")) || {};
 
 function salvar(){
-
-localStorage.setItem(
-'jogadores',
-JSON.stringify(jogadores)
-);
-
-localStorage.setItem(
-'vitorias',
-JSON.stringify(vitorias)
-);
-
+localStorage.setItem("ftv_jogadores",JSON.stringify(jogadores));
+localStorage.setItem("ftv_vitorias",JSON.stringify(vitorias));
 }
 
 function adicionarJogador(){
 
-const nome=
-document.getElementById('novoJogador').value.trim();
+const input =
+document.getElementById("novoJogador");
+
+const nome =
+input.value.trim();
 
 if(!nome) return;
 
-jogadores.push(nome);
+const id = Date.now();
 
-if(!vitorias[nome])
-vitorias[nome]=0;
+jogadores.push({
+id:id,
+nome:nome
+});
 
-document.getElementById('novoJogador').value='';
+if(!vitorias[id]){
+vitorias[id]={
+nome:nome,
+wins:0
+};
+}
+
+input.value="";
 
 salvar();
-
 renderizar();
 
 }
 
-function removerJogador(nome){
+function removerJogador(id){
 
-jogadores=
-jogadores.filter(p=>p!==nome);
+jogadores =
+jogadores.filter(j=>j.id!==id);
 
 salvar();
-
 renderizar();
 
 }
 
 function registrarVitoria(time){
 
-if(jogadores.length<4)
-return;
+if(jogadores.length<4) return;
 
 let dupla1=[jogadores[0],jogadores[1]];
 let dupla2=[jogadores[2],jogadores[3]];
 
-let vencedores=
+let vencedores =
 time===1 ? dupla1 : dupla2;
 
-let perdedores=
+let perdedores =
 time===1 ? dupla2 : dupla1;
 
-vencedores.forEach(j=>vitorias[j]++);
+vencedores.forEach(j=>{
+if(vitorias[j.id]){
+vitorias[j.id].wins++;
+}
+});
 
-let filaNova=
-[
+jogadores = [
 ...vencedores,
 ...jogadores.slice(4),
 ...perdedores
 ];
 
-jogadores=filaNova;
+salvar();
+renderizar();
+
+}
+
+function zerarNoite(){
+
+if(!confirm("Deseja apagar toda a fila e ranking?")){
+return;
+}
+
+jogadores=[];
+vitorias={};
 
 salvar();
-
 renderizar();
 
 }
 
 function renderizar(){
 
-document.getElementById('contador')
-.innerHTML=
+document.getElementById("contador")
+.innerText =
 `${jogadores.length} jogadores presentes`;
 
-let quadra=document.getElementById('quadra');
+const quadra =
+document.getElementById("quadra");
 
 if(jogadores.length>=4){
 
-quadra.innerHTML=
-
-`
-🟢 ${jogadores[0]} + ${jogadores[1]}
-<br><br>
-⚔️
-<br><br>
-🔵 ${jogadores[2]} + ${jogadores[3]}
-`;
-
-}else{
-
-quadra.innerHTML=
-'Adicione pelo menos 4 jogadores';
-
-}
-
-let fila=document.getElementById('fila');
-
-fila.innerHTML='';
-
-jogadores.slice(4).forEach(nome=>{
-
-let div=document.createElement('div');
-
-div.className='player';
-
-div.innerHTML=
-`
-<span>${nome}</span>
-<button
-class="remove"
-onclick="removerJogador('${nome}')">
-Sair
-</button>
-`;
-
-fila.appendChild(div);
-
-});
-
-let ranking=document.getElementById('ranking');
-
-ranking.innerHTML='';
-
-Object.entries(vitorias)
-
-.sort((a,b)=>b[1]-a[1])
-
-.forEach(item=>{
-
-let div=document.createElement('div');
-
-div.className='ranking-item';
-
-div.innerHTML=
-`
-<span>${item[0]}</span>
-<span>${item[1]} vitórias</span>
-`;
-
-ranking.appendChild(div);
-
-});
-
-}
-
-renderizar();
-
-new Sortable(
-document.getElementById('fila'),
-{
-animation:150
-}
-);
-
-</script>
-
-</body>
-</html>
+quadra.innerHTML = `
+<div class
