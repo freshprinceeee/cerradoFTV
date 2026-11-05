@@ -132,6 +132,7 @@
     .versus { display: grid; place-items: center; color: var(--yellow); font-size: .75rem; font-weight: 900; }
     .court-empty, .empty { padding: 18px 8px; color: var(--muted); text-align: center; }
     .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+    .rotate-btn { grid-column: span 1; border-color: rgba(255,200,87,.45); }
     .win-btn {
       min-height: 48px;
       border: 1px solid var(--line);
@@ -208,6 +209,8 @@
       .versus { min-height: 24px; }
       .player { grid-template-columns: 30px minmax(0,1fr) auto; padding-inline: 7px; }
       .icon-btn { width: 31px; height: 31px; }
+      .result-actions { grid-template-columns: 1fr; }
+      .rotate-btn { grid-column: span 1; }
     }
   </style>
 </head>
@@ -235,8 +238,10 @@
       <div class="card-head"><h2 id="courtTitle">🔥 Em quadra</h2><span class="hint">2 contra 2</span></div>
       <div id="court"></div>
       <div class="result-actions">
-        <button id="team1Win" type="button" class="win-btn">🏆 Dupla 1 venceu</button>
-        <button id="team2Win" type="button" class="win-btn">🏆 Dupla 2 venceu</button>
+        <button id="team1Win" type="button" class="win-btn">🏆 Dupla 1 venceu e fica</button>
+        <button id="team2Win" type="button" class="win-btn">🏆 Dupla 2 venceu e fica</button>
+        <button id="rotateWinner1" type="button" class="win-btn rotate-btn">🔄 Trocar as duas duplas<br>Dupla 1 venceu</button>
+        <button id="rotateWinner2" type="button" class="win-btn rotate-btn">🔄 Trocar as duas duplas<br>Dupla 2 venceu</button>
       </div>
     </section>
 
@@ -340,6 +345,33 @@
         persistAndRender();
       }
 
+      function rotateBothTeams(winningTeam) {
+        if (state.players.length < 4) {
+          setMessage('São necessários 4 jogadores para trocar as duas duplas.');
+          return;
+        }
+
+        const team1 = state.players.slice(0, 2);
+        const team2 = state.players.slice(2, 4);
+        const waiting = state.players.slice(4);
+        const winners = winningTeam === 1 ? team1 : team2;
+        const losers = winningTeam === 1 ? team2 : team1;
+
+        winners.forEach(player => {
+          state.wins[player.id] = (state.wins[player.id] || 0) + 1;
+        });
+
+        // As duas duplas saem. A dupla vencedora recebe prioridade e
+        // fica antes da dupla perdedora no final da fila.
+        state.players = [...waiting, ...winners, ...losers];
+
+        setMessage(
+          `${winners.map(player => player.name).join(' e ')} venceram. As duas duplas saíram, com a vencedora à frente no fim da fila.`
+        );
+
+        persistAndRender();
+      }
+
       function statusAt(index) {
         if (index < 2) return 'Dupla 1, em quadra';
         if (index < 4) return 'Dupla 2, em quadra';
@@ -352,6 +384,8 @@
         const ready = state.players.length >= 4;
         $('#team1Win').disabled = !ready;
         $('#team2Win').disabled = !ready;
+        $('#rotateWinner1').disabled = !ready;
+        $('#rotateWinner2').disabled = !ready;
         if (!ready) {
           court.innerHTML = `<div class="court-empty">Faltam ${4 - state.players.length} jogador(es) para formar a primeira partida.</div>`;
           return;
@@ -409,6 +443,8 @@
       $('#addForm').addEventListener('submit', addPlayer);
       $('#team1Win').addEventListener('click', () => registerWin(1));
       $('#team2Win').addEventListener('click', () => registerWin(2));
+      $('#rotateWinner1').addEventListener('click', () => rotateBothTeams(1));
+      $('#rotateWinner2').addEventListener('click', () => rotateBothTeams(2));
       $('#queue').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-action]');
         if (!button) return;
