@@ -142,26 +142,11 @@
       cursor: pointer;
     }
     .win-btn:first-child { border-color: rgba(41,209,125,.5); }
-    .win-btn:last-child { border-color: rgba(73,167,255,.5); }
+    .win-btn:nth-child(2) { border-color: rgba(73,167,255,.5); }
+    .swap-btn { grid-column: 1 / -1; border-color: rgba(255,200,87,.55); color: var(--yellow); }
     .win-btn:disabled { cursor: not-allowed; opacity: .4; }
     .next-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
-    .next-team {
-      padding: 12px;
-      border-radius: 16px;
-      background: rgba(255,200,87,.1);
-      border: 1px solid rgba(255,200,87,.32);
-      color: #ffe3a8;
-      text-align: center;
-    }
-    .next-team-label {
-      margin-bottom: 7px;
-      color: var(--yellow);
-      font-size: .7rem;
-      font-weight: 900;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-    .next-team-names { color: var(--text); font-weight: 800; line-height: 1.45; }
+    .next-player { padding: 12px; border-radius: 14px; background: rgba(255,200,87,.1); border: 1px solid rgba(255,200,87,.28); color: #ffe3a8; text-align: center; font-weight: 800; }
     .queue { display: grid; gap: 8px; }
     .player {
       display: grid;
@@ -175,24 +160,6 @@
       background: var(--surface-2);
     }
     .player.dragging { opacity: .45; }
-    .player.on-court {
-      border-color: rgba(41,209,125,.65);
-      background: linear-gradient(90deg, rgba(41,209,125,.18), var(--surface-2));
-      box-shadow: inset 4px 0 0 var(--green);
-    }
-    .player.next-up {
-      border-color: rgba(255,200,87,.62);
-      background: linear-gradient(90deg, rgba(255,200,87,.15), var(--surface-2));
-      box-shadow: inset 4px 0 0 var(--yellow);
-    }
-    .player.waiting {
-      border-color: var(--line);
-      background: var(--surface-2);
-    }
-    .player.on-court .position { color: #06130f; background: var(--green); }
-    .player.next-up .position { color: #2a1b00; background: var(--yellow); }
-    .player.on-court .player-status { color: #7ff0b5; }
-    .player.next-up .player-status { color: #ffe09a; }
     .position { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #0a2018; color: var(--green); font-size: .8rem; font-weight: 900; cursor: grab; }
     .player-name { min-width: 0; overflow-wrap: anywhere; font-weight: 750; }
     .player-status { display: block; margin-top: 2px; color: var(--muted); font-size: .7rem; font-weight: 500; }
@@ -229,6 +196,9 @@
     dialog h3 { margin-top: 0; }
     dialog p { color: var(--muted); }
     .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+    .swap-options { display: grid; gap: 9px; margin-top: 18px; }
+    .swap-options button { min-height: 48px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+    .swap-options .cancel { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
     .dialog-actions button { min-height: 44px; border-radius: 12px; border: 1px solid var(--line); font-weight: 800; cursor: pointer; }
     .cancel { background: var(--surface-2); color: var(--text); }
     .confirm { background: var(--red); color: #fff; }
@@ -271,6 +241,7 @@
       <div class="result-actions">
         <button id="team1Win" type="button" class="win-btn">🏆 Dupla 1 venceu</button>
         <button id="team2Win" type="button" class="win-btn">🏆 Dupla 2 venceu</button>
+        <button id="swapTeams" type="button" class="win-btn swap-btn">🔄 Trocar duplas</button>
       </div>
     </section>
 
@@ -294,6 +265,16 @@
       <button id="resetNight" type="button" class="danger">Reiniciar noite</button>
     </section>
   </main>
+
+  <dialog id="swapDialog">
+    <h3>Trocar as duas duplas</h3>
+    <p>Qual dupla venceu? As duas sairão da quadra. A vencedora receberá a vitória e ficará à frente da perdedora no final da fila.</p>
+    <div class="swap-options">
+      <button id="swapTeam1" type="button" class="win-btn">🏆 Dupla 1 venceu</button>
+      <button id="swapTeam2" type="button" class="win-btn">🏆 Dupla 2 venceu</button>
+      <button id="swapCancel" type="button" class="cancel">Cancelar</button>
+    </div>
+  </dialog>
 
   <dialog id="confirmDialog">
     <h3 id="dialogTitle">Confirmar</h3>
@@ -374,18 +355,33 @@
         persistAndRender();
       }
 
+      function swapBothTeams(winningTeam) {
+        if (state.players.length < 8) {
+          setMessage('São necessários 8 jogadores para trocar as duas duplas e colocar duas novas duplas em quadra.');
+          return;
+        }
+
+        const team1 = state.players.slice(0, 2);
+        const team2 = state.players.slice(2, 4);
+        const waiting = state.players.slice(4);
+        const winners = winningTeam === 1 ? team1 : team2;
+        const losers = winningTeam === 1 ? team2 : team1;
+
+        winners.forEach(player => {
+          state.wins[player.id] = (state.wins[player.id] || 0) + 1;
+        });
+
+        state.players = [...waiting, ...winners, ...losers];
+        $('#swapDialog').close();
+        setMessage(`${winners.map(player => player.name).join(' e ')} venceram. As duas duplas saíram, e a vencedora ficou à frente da perdedora no fim da fila.`);
+        persistAndRender();
+      }
+
       function statusAt(index) {
         if (index < 2) return 'Dupla 1, em quadra';
         if (index < 4) return 'Dupla 2, em quadra';
-        if (index < 6) return 'Próxima dupla 1';
-        if (index < 8) return 'Próxima dupla 2';
-        return `${index - 7}º após as próximas duplas`;
-      }
-
-      function queueClassAt(index) {
-        if (index < 4) return 'on-court';
-        if (index < 8) return 'next-up';
-        return 'waiting';
+        if (index < 6) return 'Próximo a entrar';
+        return `${index - 3}º na fila de espera`;
       }
 
       function renderCourt() {
@@ -393,6 +389,7 @@
         const ready = state.players.length >= 4;
         $('#team1Win').disabled = !ready;
         $('#team2Win').disabled = !ready;
+        $('#swapTeams').disabled = state.players.length < 8;
         if (!ready) {
           court.innerHTML = `<div class="court-empty">Faltam ${4 - state.players.length} jogador(es) para formar a primeira partida.</div>`;
           return;
@@ -405,23 +402,16 @@
       }
 
       function renderNext() {
-        const nextFour = state.players.slice(4, 8);
-        const teams = [nextFour.slice(0, 2), nextFour.slice(2, 4)].filter(team => team.length);
-
-        $('#nextPlayers').innerHTML = teams.length
-          ? `<div class="next-grid">${teams.map((team, index) => `
-              <div class="next-team">
-                <div class="next-team-label">Próxima dupla ${index + 1}</div>
-                <div class="next-team-names">${team.map(player => escapeHtml(player.name)).join('<br>')}</div>
-              </div>
-            `).join('')}</div>`
+        const players = state.players.slice(4, 6);
+        $('#nextPlayers').innerHTML = players.length
+          ? `<div class="next-grid">${players.map(p => `<div class="next-player">${escapeHtml(p.name)}</div>`).join('')}</div>`
           : '<div class="empty">Ainda não há jogadores aguardando.</div>';
       }
 
       function renderQueue() {
         const queue = $('#queue');
         if (!state.players.length) { queue.innerHTML = '<div class="empty">A lista está vazia. Adicione o primeiro jogador.</div>'; return; }
-        queue.innerHTML = state.players.map((p, i) => `<div class="player ${queueClassAt(i)}" draggable="true" data-id="${p.id}">
+        queue.innerHTML = state.players.map((p, i) => `<div class="player" draggable="true" data-id="${p.id}">
           <div class="position" title="Arrastar">${i + 1}</div>
           <div class="player-name">${escapeHtml(p.name)}<span class="player-status">${statusAt(i)}</span></div>
           <div class="player-actions">
@@ -457,6 +447,16 @@
       $('#addForm').addEventListener('submit', addPlayer);
       $('#team1Win').addEventListener('click', () => registerWin(1));
       $('#team2Win').addEventListener('click', () => registerWin(2));
+      $('#swapTeams').addEventListener('click', () => {
+        if (state.players.length < 8) {
+          setMessage('São necessários 8 jogadores para trocar as duas duplas.');
+          return;
+        }
+        $('#swapDialog').showModal();
+      });
+      $('#swapTeam1').addEventListener('click', () => swapBothTeams(1));
+      $('#swapTeam2').addEventListener('click', () => swapBothTeams(2));
+      $('#swapCancel').addEventListener('click', () => $('#swapDialog').close());
       $('#queue').addEventListener('click', (event) => {
         const button = event.target.closest('button[data-action]');
         if (!button) return;
